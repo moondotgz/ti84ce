@@ -1,6 +1,7 @@
 //! The Python App: script browser, interactive shell and script editor.
 
-use super::editor::{wrap_with_cursor, CursorKind};
+use super::editor::{wrap_colored, wrap_with_cursor, CursorKind};
+use crate::python::highlight::{highlight, highlight_line, State as HlState};
 use super::menus::{self, Cmd};
 use super::view::*;
 use super::{AlphaState, Calc, Mods, Screen};
@@ -432,7 +433,15 @@ impl PyApp {
                     }
                 }
                 for l in lines {
-                    rows.extend(wrap_with_cursor(&[], l, None, color::BLACK));
+                    // Echoed code lines get highlighted after their prompt.
+                    let code = l.strip_prefix(">>> ").or_else(|| l.strip_prefix("... "));
+                    match code {
+                        Some(code) => {
+                            let prompt = vec![Span::new(&l[..4]).fg(color::NAVY)];
+                            rows.extend(wrap_colored(&prompt, code, None, &highlight(code), color::BLACK));
+                        }
+                        None => rows.extend(wrap_with_cursor(&[], l, None, color::BLACK)),
+                    }
                 }
                 if show_input {
                     let prompt = if self.awaiting_input {
@@ -443,7 +452,9 @@ impl PyApp {
                         "... ".to_string()
                     };
                     let cursor = Some((self.icur, kind, blink));
-                    rows.extend(wrap_with_cursor(&[Span::new(prompt).fg(color::NAVY)], &self.input, cursor, color::BLACK));
+                    // input() responses are plain text, not code.
+                    let colors = if self.awaiting_input { Vec::new() } else { highlight(&self.input) };
+                    rows.extend(wrap_colored(&[Span::new(prompt).fg(color::NAVY)], &self.input, cursor, &colors, color::BLACK));
                 }
                 let n = rows.len();
                 rows.into_iter().skip(n.saturating_sub(vis)).collect()
@@ -452,19 +463,27 @@ impl PyApp {
                 let Some(s) = self.scripts.get(self.edit_idx) else { return vec![] };
                 let hs = self.col.saturating_sub(COLS - 2);
                 let mut rows = Vec::new();
+                // Carry triple-quote state from the lines above the viewport.
+                let mut hl = HlState::default();
+                for line in s.lines.iter().take(self.scroll) {
+                    highlight_line(line, &mut hl);
+                }
                 for (i, line) in s.lines.iter().enumerate().skip(self.scroll).take(vis) {
                     let chars: Vec<char> = line.chars().collect();
+                    let colors = highlight_line(line, &mut hl);
                     let ind = indent_of(line);
                     let mut row: Row = Vec::new();
                     let mut buf = String::new();
+                    let mut buf_fg = color::BLACK;
                     let end = (hs + COLS).min(chars.len() + 1);
                     for (c_idx, pos) in (hs..end).enumerate() {
                         let _ = c_idx;
                         let ch = chars.get(pos).copied().unwrap_or(' ');
                         let is_cur = i == self.row && pos == self.col;
+                        let cfg = colors.get(pos).copied().unwrap_or(color::BLACK);
                         if is_cur || pos < ind {
                             if !buf.is_empty() {
-                                row.push(Span::new(std::mem::take(&mut buf)));
+                                row.push(Span::new(std::mem::take(&mut buf)).fg(buf_fg));
                             }
                             if is_cur && blink {
                                 let g = match kind {
@@ -477,14 +496,18 @@ impl PyApp {
                             } else if pos < ind {
                                 row.push(Span::new("·").fg(color::LTGRAY));
                             } else {
-                                row.push(Span::new(ch.to_string()));
+                                row.push(Span::new(ch.to_string()).fg(cfg));
                             }
                         } else if pos < chars.len() {
+                            if !buf.is_empty() && cfg != buf_fg {
+                                row.push(Span::new(std::mem::take(&mut buf)).fg(buf_fg));
+                            }
+                            buf_fg = cfg;
                             buf.push(ch);
                         }
                     }
                     if !buf.is_empty() {
-                        row.push(Span::new(buf));
+                        row.push(Span::new(buf).fg(buf_fg));
                     }
                     rows.push(row);
                 }

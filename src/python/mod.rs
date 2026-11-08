@@ -1,6 +1,7 @@
 //! A small Python interpreter (lexer, parser, tree-walking evaluator) that
 //! runs on a worker thread so long-running scripts don't block the UI.
 
+pub mod highlight;
 pub mod interp;
 pub mod lexer;
 pub mod parser;

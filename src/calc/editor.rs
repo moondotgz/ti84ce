@@ -196,6 +196,19 @@ pub fn wrap_with_cursor(
     cursor: Option<(usize, CursorKind, bool)>,
     fg: u32,
 ) -> Vec<Row> {
+    wrap_colored(prefix, text, cursor, &[], fg)
+}
+
+/// Like `wrap_with_cursor`, with a per-character color (`colors[i]` for char
+/// `i`; characters past the end of `colors` use `fg`).
+pub fn wrap_colored(
+    prefix: &[Span],
+    text: &str,
+    cursor: Option<(usize, CursorKind, bool)>,
+    colors: &[u32],
+    fg: u32,
+) -> Vec<Row> {
+    let color_at = |i: usize| colors.get(i).copied().unwrap_or(fg);
     let prefix_len: usize = prefix.iter().map(|s| s.text.chars().count()).sum();
     let mut chars: Vec<char> = text.chars().collect();
     let cur_pos = cursor.map(|(p, _, _)| p + prefix_len);
@@ -213,15 +226,17 @@ pub fn wrap_with_cursor(
         let start = r * COLS;
         let end = ((r + 1) * COLS).min(total);
         let mut buf = String::new();
+        let mut buf_fg = fg;
         for pos in start..end {
             if pos < prefix_len {
                 continue;
             }
             let c = chars[pos - prefix_len];
+            let cfg = color_at(pos - prefix_len);
             if Some(pos) == cur_pos {
                 let (_, kind, on) = cursor.unwrap();
                 if !buf.is_empty() {
-                    row.push(Span::new(std::mem::take(&mut buf)).fg(fg));
+                    row.push(Span::new(std::mem::take(&mut buf)).fg(buf_fg));
                 }
                 if on {
                     match kind {
@@ -229,14 +244,18 @@ pub fn wrap_with_cursor(
                         k => row.push(Span::new(k.glyph(c).to_string()).fg(color::WHITE).bg(color::BLACK)),
                     }
                 } else {
-                    row.push(Span::new(c.to_string()).fg(fg));
+                    row.push(Span::new(c.to_string()).fg(cfg));
                 }
             } else {
+                if !buf.is_empty() && cfg != buf_fg {
+                    row.push(Span::new(std::mem::take(&mut buf)).fg(buf_fg));
+                }
+                buf_fg = cfg;
                 buf.push(c);
             }
         }
         if !buf.is_empty() {
-            row.push(Span::new(buf).fg(fg));
+            row.push(Span::new(buf).fg(buf_fg));
         }
         if r == 0 {
             let mut full = prefix.to_vec();
