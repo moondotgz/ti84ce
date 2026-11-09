@@ -1,0 +1,13 @@
+[package]
+name = "ti84-ffi"
+description = "C interface to ti84-core for native front ends (iOS)"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+name = "ti84"
+crate-type = ["staticlib", "lib"]
+
+[dependencies]
+ti84-core = { path = "../core" }
+serde_json = "1"

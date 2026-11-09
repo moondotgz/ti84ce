@@ -102,7 +102,11 @@ fn byte_idx(s: &str, ch: usize) -> usize {
 
 impl PyApp {
     pub fn new() -> Self {
-        let dir = data_dir();
+        Self::new_in(data_dir())
+    }
+
+    /// Create the app storing scripts in `dir` (`None` keeps them in memory only).
+    pub fn new_in(dir: Option<PathBuf>) -> Self {
         let mut scripts = Vec::new();
         if let Some(d) = &dir {
             if let Ok(rd) = std::fs::read_dir(d) {
@@ -157,7 +161,7 @@ impl PyApp {
     }
 
     pub fn placeholder() -> Self {
-        PyApp::new()
+        PyApp::new_in(None)
     }
 
     pub fn busy(&self) -> bool {

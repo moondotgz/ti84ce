@@ -1,0 +1,4 @@
+module Ti84Core {
+    header "ti84.h"
+    export *
+}

@@ -145,6 +145,16 @@ impl Default for Calc {
 
 impl Calc {
     pub fn new() -> Self {
+        Self::with_python(PyApp::new())
+    }
+
+    /// A calculator whose Python scripts live in `dir` (e.g. an iOS app's
+    /// Documents folder). `None` keeps scripts in memory only.
+    pub fn with_python_dir(dir: Option<std::path::PathBuf>) -> Self {
+        Self::with_python(PyApp::new_in(dir))
+    }
+
+    fn with_python(py: PyApp) -> Self {
         Calc {
             env: Env::default(),
             settings: Settings::default(),
@@ -166,7 +176,7 @@ impl Calc {
             graph: GraphState::default(),
             table: TableState::default(),
             lists: ListEditor::default(),
-            py: PyApp::new(),
+            py,
             off: false,
             blink: true,
         }

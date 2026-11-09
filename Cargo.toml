@@ -1,12 +1,16 @@
-[package]
-name = "ti84ce"
+[workspace]
+resolver = "3"
+members = ["core", "desktop", "ffi"]
+default-members = ["desktop"]
+
+[workspace.package]
 version = "0.1.0"
 edition = "2024"
-
-[dependencies]
-gpui = "0.2.2"
 
 # xattr 0.2.3 (pulled in by gpui's http client) references libc::ENOATTR, which
 # newer libc releases dropped on Linux. ENODATA is the same errno there.
 [patch.crates-io]
 xattr = { path = "vendor/xattr" }
+
+[profile.release]
+lto = "thin"

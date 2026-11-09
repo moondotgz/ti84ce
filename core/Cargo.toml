@@ -1,0 +1,6 @@
+[package]
+name = "ti84-core"
+description = "Platform-independent calculator OS: math engine, Python interpreter and screens"
+version.workspace = true
+edition.workspace = true
+

@@ -160,7 +160,23 @@ pub const GRID: [[KeyDef; 5]; 7] = [
     ],
 ];
 
+/// Every key, in declaration order. A key's index here is its stable numeric
+/// code for foreign front ends (`Key::code` / `Key::from_code`).
+pub const ALL: [Key; 50] = [
+    YEq, Window, Zoom, Trace, Graph, Second, Mode, Del, Up, Down, Left, Right, Alpha, Xtn, Stat,
+    Math, Apps, Prgm, Vars, Clear, Inv, Sin, Cos, Tan, Pow, Sq, Comma, LParen, RParen, Div, Log,
+    D7, D8, D9, Mul, Ln, D4, D5, D6, Sub, Sto, D1, D2, D3, Add, On, D0, Dot, Neg, Enter,
+];
+
 impl Key {
+    pub fn code(self) -> u32 {
+        self as u32
+    }
+
+    pub fn from_code(code: u32) -> Option<Key> {
+        ALL.get(code as usize).copied()
+    }
+
     pub fn digit(self) -> Option<u8> {
         Some(match self {
             D0 => 0,
@@ -244,4 +260,17 @@ pub fn key_by_name(name: &str) -> Option<Key> {
         .chain(GRID.iter().flatten())
         .find(|d| d.label == name)
         .map(|d| d.key)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn codes_round_trip() {
+        for (i, k) in ALL.iter().enumerate() {
+            assert_eq!(k.code(), i as u32);
+            assert_eq!(Key::from_code(i as u32), Some(*k));
+        }
+    }
 }
