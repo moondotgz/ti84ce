@@ -1,0 +1,9 @@
+[package]
+name = "ti84ce"
+description = "Desktop front end (GPUI)"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+gpui = "0.2.2"
+ti84-core = { path = "../core" }

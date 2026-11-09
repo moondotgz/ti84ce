@@ -38,7 +38,7 @@ impl PyWorker {
         let flag = interrupt.clone();
         std::thread::Builder::new()
             .name("python".into())
-            .stack_size(512 * 1024 * 1024)
+            .stack_size(64 * 1024 * 1024)
             .spawn(move || {
                 let cmd_rx = Rc::new(cmd_rx);
                 let out_tx = ev_tx.clone();

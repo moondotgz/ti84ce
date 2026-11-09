@@ -1,8 +1,8 @@
 //! GPUI front end: the calculator body, LCD renderer and clickable keypad.
 
-use crate::calc::view::{self as v, Body, CursorStyle, GraphModel, Grid, Indicator, Row, ViewModel};
-use crate::calc::Calc;
-use crate::keys::{Key, KeyDef, KeyStyle, GRID, TOP_ROW, UPPER_LEFT};
+use ti84_core::calc::view::{self as v, Body, CursorStyle, GraphModel, Grid, Indicator, Row, ViewModel};
+use ti84_core::calc::Calc;
+use ti84_core::keys::{Key, KeyDef, KeyStyle, GRID, TOP_ROW, UPPER_LEFT};
 use gpui::prelude::FluentBuilder;
 use gpui::*;
 use std::time::Duration;

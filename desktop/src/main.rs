@@ -1,9 +1,5 @@
 //! A TI-84 Plus CE-T Python Edition clone written in Rust with GPUI.
 
-mod calc;
-mod engine;
-mod keys;
-mod python;
 mod ui;
 
 use gpui::*;

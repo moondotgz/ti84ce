@@ -5375,10 +5375,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "ti84-core"
+version = "0.1.0"
+
+[[package]]
+name = "ti84-ffi"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "ti84-core",
+]
+
+[[package]]
 name = "ti84ce"
 version = "0.1.0"
 dependencies = [
  "gpui",
+ "ti84-core",
 ]
 
 [[package]]
